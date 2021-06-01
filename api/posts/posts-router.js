@@ -61,6 +61,64 @@ router.get("/:id/comments", (req, res) => {
     });
 });
 
+router.post("/", (req, res) => {
+    const body = req.body
+    if(!body.title || !body.contents){
+        res.status(400).json({ message: "Please require title and contents for the post"})
+    }else{
+        Post.insert(body)
+      .then(({id}) => {
+return Post.findById(id)
+      })
+      .then((post) => res.status(201).json(post))
+      .catch((error) => {
+console.log(error)
+res.status(500).json({message:"There was an error while saving the post to the database"})
+      })
+    }
+
+})
+
+
+router.put("/:id", (req, res)=> {
+    const changes = req.body
+    const {id} = req.params
+    if(!changes.title || !changes.contents){
+     res.status(400).json({message:"Please provide title and contents for the post"})
+    }else{
+        Post.update(id,changes)
+        .then((post)=> {
+            if(!post){
+           res.status(404).json({message:"The post with the specified ID does not exist" })
+            }else{
+                return Post.findById(id)
+            }
+        })
+        .then((post) => res.json(post))
+        .catch((error) => {
+            console.log(error)
+            res.status(500).json({message:"The post information could not be modified"})
+        })
+    }
+})
+
+
+router.delete("/:id", (req, res) => {
+    const {id} = req.params
+    Post.findById(id)
+    .then((post)=> {
+        if(!post){
+            res.status(404).json({message:"The post with the specified ID does not exist"})
+        }else{
+            res.json(post)
+            return Post.remove(id)
+        }
+    })
+    .catch((error) => {
+        console.log(error)
+        res.status(500).json({message:"The post could not be removed"})
+    })
+})
 
 
 
